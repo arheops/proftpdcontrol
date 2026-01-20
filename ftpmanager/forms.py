@@ -1,5 +1,5 @@
 from django import forms
-from .models import FTPUser, Folder, FolderAccess
+from .models import FTPUser, Folder, FolderAccess, UserProfile
 
 
 class FTPUserForm(forms.ModelForm):
@@ -66,3 +66,14 @@ class BulkAccessForm(forms.Form):
                 label=folder.name,
                 widget=forms.Select(attrs={'class': 'form-select form-select-sm'})
             )
+
+
+class UserProfileForm(forms.ModelForm):
+    """Form for editing user profile settings"""
+    class Meta:
+        model = UserProfile
+        fields = ['basedir', 'exclude_dirs']
+        widgets = {
+            'basedir': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '/main/'}),
+            'exclude_dirs': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '/keys/,.ssh'}),
+        }

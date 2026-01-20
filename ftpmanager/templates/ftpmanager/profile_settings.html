@@ -1,0 +1,47 @@
+{% extends 'ftpmanager/base.html' %}
+
+{% block title %}Settings - ProFTPD Control{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-gear me-2"></i>Settings
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="id_basedir" class="form-label">Base Directory</label>
+                        {{ form.basedir }}
+                        {% if form.basedir.errors %}
+                            <div class="text-danger small">{{ form.basedir.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Root directory for folder browser lookup</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_exclude_dirs" class="form-label">Exclude Directories</label>
+                        {{ form.exclude_dirs }}
+                        {% if form.exclude_dirs.errors %}
+                            <div class="text-danger small">{{ form.exclude_dirs.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Comma-separated list of directory patterns to exclude from browser (e.g., /keys/,.ssh,@eaDir)</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

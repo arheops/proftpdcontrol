@@ -27,4 +27,10 @@ urlpatterns = [
     path('config/', views.generate_config, name='generate_config'),
     path('config/download/', views.download_config, name='download_config'),
     path('config/download-users/', views.download_ftpusers, name='download_ftpusers'),
+
+    # Settings
+    path('settings/', views.profile_settings, name='profile_settings'),
+
+    # API
+    path('api/directories/', views.list_directories, name='list_directories'),
 ]

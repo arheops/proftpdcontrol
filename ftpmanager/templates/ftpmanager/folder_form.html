@@ -24,7 +24,12 @@
 
                     <div class="mb-3">
                         <label for="id_path" class="form-label">Path</label>
-                        {{ form.path }}
+                        <div class="input-group">
+                            {{ form.path }}
+                            <button type="button" class="btn btn-outline-secondary" id="btn-lookup" title="Browse directories">
+                                <i class="bi bi-folder-symlink"></i> Browse
+                            </button>
+                        </div>
                         {% if form.path.errors %}
                             <div class="text-danger small">{{ form.path.errors }}</div>
                         {% endif %}
@@ -49,4 +54,118 @@
         </div>
     </div>
 </div>
+
+<!-- Directory Browser Modal -->
+<div class="modal fade" id="dirModal" tabindex="-1" aria-labelledby="dirModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dirModalLabel">
+                    <i class="bi bi-folder-symlink me-2"></i>Browse Directories
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="dir-filter" placeholder="Filter directories...">
+                </div>
+                <div id="dir-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2">Loading directories...</div>
+                </div>
+                <div id="dir-error" class="alert alert-danger d-none"></div>
+                <div id="dir-list" class="list-group d-none" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <small class="text-muted me-auto">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Configure base directory in <a href="{% url 'profile_settings' %}">Settings</a>
+                </small>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnLookup = document.getElementById('btn-lookup');
+    const pathInput = document.getElementById('id_path');
+    const nameInput = document.getElementById('id_name');
+    const dirModal = new bootstrap.Modal(document.getElementById('dirModal'));
+    const dirLoading = document.getElementById('dir-loading');
+    const dirError = document.getElementById('dir-error');
+    const dirList = document.getElementById('dir-list');
+    const dirFilter = document.getElementById('dir-filter');
+
+    let directories = [];
+
+    btnLookup.addEventListener('click', function() {
+        // Reset modal state
+        dirLoading.classList.remove('d-none');
+        dirError.classList.add('d-none');
+        dirList.classList.add('d-none');
+        dirFilter.value = '';
+        dirModal.show();
+
+        // Fetch directories
+        fetch('{% url "list_directories" %}')
+            .then(response => response.json())
+            .then(data => {
+                dirLoading.classList.add('d-none');
+
+                if (data.error) {
+                    dirError.textContent = data.error;
+                    dirError.classList.remove('d-none');
+                    return;
+                }
+
+                directories = data.directories;
+                renderDirectories(directories);
+                dirList.classList.remove('d-none');
+            })
+            .catch(error => {
+                dirLoading.classList.add('d-none');
+                dirError.textContent = 'Failed to load directories: ' + error;
+                dirError.classList.remove('d-none');
+            });
+    });
+
+    function renderDirectories(dirs) {
+        dirList.innerHTML = '';
+        dirs.forEach(dir => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.innerHTML = '<i class="bi bi-folder me-2"></i>' + dir;
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                pathInput.value = dir;
+                // Auto-fill name if empty - use last directory part
+                if (!nameInput.value) {
+                    const parts = dir.split('/').filter(p => p);
+                    if (parts.length > 0) {
+                        nameInput.value = parts[parts.length - 1];
+                    }
+                }
+                dirModal.hide();
+            });
+            dirList.appendChild(item);
+        });
+
+        if (dirs.length === 0) {
+            dirList.innerHTML = '<div class="list-group-item text-muted">No directories found</div>';
+        }
+    }
+
+    // Filter directories
+    dirFilter.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const filtered = directories.filter(dir => dir.toLowerCase().includes(filter));
+        renderDirectories(filtered);
+    });
+});
+</script>
 {% endblock %}
