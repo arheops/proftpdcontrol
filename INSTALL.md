@@ -56,10 +56,15 @@ pip install gunicorn
 
 ```bash
 # Set allowed hosts (replace with your hostname)
-sed -i "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = ['*']/" proftpdcontrol/settings.py
+HOST_NAME_HERE = `hostname -a` # change if different hostname
+sed -i "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = ['$HOST_NAME_HERE']/" proftpdcontrol/settings.py
 
 # Or for specific host:
 # sed -i "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = ['your-hostname.example.com']/" proftpdcontrol/settings.py
+
+# Generate and set random SECRET_KEY
+NEW_SECRET_KEY=$(python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+sed -i "s/SECRET_KEY = .*/SECRET_KEY = '$NEW_SECRET_KEY'/" proftpdcontrol/settings.py
 
 # Still in venv, run migrations
 python manage.py migrate
