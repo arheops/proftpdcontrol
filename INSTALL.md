@@ -55,6 +55,12 @@ pip install gunicorn
 ### 4. Configure Django
 
 ```bash
+# Set allowed hosts (replace with your hostname)
+sed -i "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = ['*']/" proftpdcontrol/settings.py
+
+# Or for specific host:
+# sed -i "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = ['your-hostname.example.com']/" proftpdcontrol/settings.py
+
 # Still in venv, run migrations
 python manage.py migrate
 
