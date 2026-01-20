@@ -1,7 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from django.urls import reverse
+from django.utils.html import format_html
 from .models import FTPUser, Folder, FolderAccess, UserProfile
+
+
+# Customize admin site
+admin.site.site_header = 'ProFTPD Control Administration'
+admin.site.site_title = 'ProFTPD Admin'
+admin.site.index_title = format_html(
+    'Administration &nbsp; | &nbsp; <a href="/users/" style="color: #447e9b;">Go to FTP Control Panel</a>'
+)
 
 
 class UserProfileInline(admin.StackedInline):
