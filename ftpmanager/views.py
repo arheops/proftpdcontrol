@@ -237,7 +237,19 @@ def list_directories(request):
 
     scan_dirs(basedir)
 
+    # Convert to relative paths (remove basedir prefix)
+    relative_dirs = []
+    for d in directories:
+        if d.startswith(basedir):
+            rel_path = d[len(basedir):]
+            if rel_path.startswith('/'):
+                rel_path = rel_path[1:]
+            if rel_path:
+                relative_dirs.append(rel_path)
+        else:
+            relative_dirs.append(d)
+
     return JsonResponse({
-        'basedir': basedir,
-        'directories': directories
+        'basedir': basedir.rstrip('/'),
+        'directories': relative_dirs
     })

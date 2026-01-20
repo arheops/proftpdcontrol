@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dirFilter = document.getElementById('dir-filter');
 
     let directories = [];
+    let basedir = '';
 
     btnLookup.addEventListener('click', function() {
         // Reset modal state
@@ -122,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
+                basedir = data.basedir;
                 directories = data.directories;
                 renderDirectories(directories);
                 dirList.classList.remove('d-none');
@@ -142,7 +144,12 @@ document.addEventListener('DOMContentLoaded', function() {
             item.innerHTML = '<i class="bi bi-folder me-2"></i>' + dir;
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                pathInput.value = dir;
+                // Add basedir prefix if not already present
+                let fullPath = dir;
+                if (!dir.startsWith(basedir)) {
+                    fullPath = basedir + '/' + dir;
+                }
+                pathInput.value = fullPath;
                 // Auto-fill name if empty - use last directory part
                 if (!nameInput.value) {
                     const parts = dir.split('/').filter(p => p);
