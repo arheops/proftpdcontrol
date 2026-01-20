@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ProFTPD Control Panel{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #212529;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,.8);
+        }
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255,255,255,.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        .content {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar p-0">
+                <div class="p-3">
+                    <h5 class="text-white mb-4">
+                        <i class="bi bi-hdd-network me-2"></i>ProFTPD Control
+                    </h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'user_list' %}">
+                                <i class="bi bi-people me-2"></i>Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'folder' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'folder_list' %}">
+                                <i class="bi bi-folder me-2"></i>Folders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'config' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'generate_config' %}">
+                                <i class="bi bi-file-code me-2"></i>Generate Config
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-10 ms-sm-auto px-4 py-3 content">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

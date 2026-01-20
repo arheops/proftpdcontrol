@@ -1,0 +1,75 @@
+{% extends 'ftpmanager/base.html' %}
+{% load ftpmanager_tags %}
+
+{% block title %}Manage Access - {{ user.username }} - ProFTPD Control{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-key me-2"></i>Manage Folder Access for <strong>{{ user.username }}</strong>
+            </div>
+            <div class="card-body">
+                {% if folders %}
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Folder</th>
+                                    <th>Path</th>
+                                    <th>Permission</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for folder in folders %}
+                                {% with current_perm=current_access|get_item:folder.id %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-folder me-2"></i>{{ folder.name }}
+                                    </td>
+                                    <td class="text-muted small">{{ folder.path }}</td>
+                                    <td>
+                                        <select name="folder_{{ folder.id }}" class="form-select form-select-sm" style="width: auto;">
+                                            <option value="none" {% if not current_perm %}selected{% endif %}>
+                                                No Access
+                                            </option>
+                                            <option value="read" {% if current_perm == 'read' %}selected{% endif %}>
+                                                Read Only
+                                            </option>
+                                            <option value="write" {% if current_perm == 'write' %}selected{% endif %}>
+                                                Read & Write
+                                            </option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{% url 'user_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Users
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Permissions
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-folder fs-1 text-muted"></i>
+                    <p class="mt-3 text-muted">No folders defined yet.</p>
+                    <a href="{% url 'folder_create' %}" class="btn btn-success">Create a Folder</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

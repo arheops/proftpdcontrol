@@ -1,0 +1,69 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          proftpdcontrol
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ProFTPD Control Panel
+# Description:       Django-based web application for managing ProFTPD users
+### END INIT INFO
+
+NAME=proftpdcontrol
+DESC="ProFTPD Control Panel"
+DAEMON=/opt/proftpdcontrol/venv/bin/gunicorn
+DAEMON_ARGS="--bind 127.0.0.1:8000 --workers 2 --pid /var/run/$NAME.pid proftpdcontrol.wsgi:application"
+PIDFILE=/var/run/$NAME.pid
+WORKDIR=/opt/proftpdcontrol
+USER=www-data
+GROUP=www-data
+
+. /lib/lsb/init-functions
+
+do_start() {
+    log_daemon_msg "Starting $DESC" "$NAME"
+    start-stop-daemon --start --quiet --pidfile $PIDFILE \
+        --chdir $WORKDIR --chuid $USER:$GROUP \
+        --background --make-pidfile \
+        --exec $DAEMON -- $DAEMON_ARGS
+    log_end_msg $?
+}
+
+do_stop() {
+    log_daemon_msg "Stopping $DESC" "$NAME"
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE --retry=TERM/30/KILL/5
+    RETVAL=$?
+    rm -f $PIDFILE
+    log_end_msg $RETVAL
+}
+
+do_reload() {
+    log_daemon_msg "Reloading $DESC" "$NAME"
+    start-stop-daemon --stop --signal HUP --quiet --pidfile $PIDFILE
+    log_end_msg $?
+}
+
+case "$1" in
+    start)
+        do_start
+        ;;
+    stop)
+        do_stop
+        ;;
+    restart)
+        do_stop
+        do_start
+        ;;
+    reload|force-reload)
+        do_reload
+        ;;
+    status)
+        status_of_proc -p $PIDFILE "$DAEMON" "$NAME" && exit 0 || exit $?
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+        ;;
+esac
+
+exit 0

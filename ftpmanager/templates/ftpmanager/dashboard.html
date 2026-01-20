@@ -1,0 +1,123 @@
+{% extends 'ftpmanager/base.html' %}
+
+{% block title %}Dashboard - ProFTPD Control{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Active Users</h6>
+                        <h2 class="mt-2 mb-0">{{ users_count }}</h2>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Folders</h6>
+                        <h2 class="mt-2 mb-0">{{ folders_count }}</h2>
+                    </div>
+                    <i class="bi bi-folder fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Access Rules</h6>
+                        <h2 class="mt-2 mb-0">{{ access_rules_count }}</h2>
+                    </div>
+                    <i class="bi bi-shield-check fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Recent Users
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    <ul class="list-group list-group-flush">
+                        {% for user in recent_users %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-person me-2"></i>{{ user.username }}
+                            </span>
+                            <span class="badge {% if user.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No users yet. <a href="{% url 'user_create' %}">Create one</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-key me-2"></i>Recent Access Rules
+            </div>
+            <div class="card-body">
+                {% if recent_access %}
+                    <ul class="list-group list-group-flush">
+                        {% for access in recent_access %}
+                        <li class="list-group-item">
+                            <strong>{{ access.user.username }}</strong>
+                            <i class="bi bi-arrow-right mx-2"></i>
+                            {{ access.folder.name }}
+                            <span class="badge {% if access.permission == 'write' %}bg-warning{% else %}bg-info{% endif %} ms-2">
+                                {{ access.get_permission_display }}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No access rules defined yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <a href="{% url 'user_create' %}" class="btn btn-primary me-2">
+                    <i class="bi bi-person-plus me-1"></i>Add User
+                </a>
+                <a href="{% url 'folder_create' %}" class="btn btn-success me-2">
+                    <i class="bi bi-folder-plus me-1"></i>Add Folder
+                </a>
+                <a href="{% url 'generate_config' %}" class="btn btn-info">
+                    <i class="bi bi-file-code me-1"></i>Generate Config
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'ftpmanager/base.html' %}
+
+{% block title %}Folders - ProFTPD Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Folders</h2>
+    <a href="{% url 'folder_create' %}" class="btn btn-success">
+        <i class="bi bi-folder-plus me-1"></i>Add Folder
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if folders %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Path</th>
+                        <th>Users with Access</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for folder in folders %}
+                    <tr>
+                        <td>
+                            <i class="bi bi-folder me-2 text-warning"></i>{{ folder.name }}
+                            {% if folder.description %}
+                                <br><small class="text-muted">{{ folder.description }}</small>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ folder.path }}</code></td>
+                        <td>
+                            {% for access in folder.user_access.all %}
+                                <span class="badge {% if access.permission == 'write' %}bg-warning text-dark{% else %}bg-info{% endif %} me-1">
+                                    {{ access.user.username }}
+                                    {% if access.permission == 'write' %}
+                                        <i class="bi bi-pencil"></i>
+                                    {% else %}
+                                        <i class="bi bi-eye"></i>
+                                    {% endif %}
+                                </span>
+                            {% empty %}
+                                <span class="text-muted">No users</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'folder_edit' folder.pk %}" class="btn btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'folder_delete' folder.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-folder fs-1 text-muted"></i>
+            <p class="mt-3 text-muted">No folders defined yet.</p>
+            <a href="{% url 'folder_create' %}" class="btn btn-success">Add First Folder</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
