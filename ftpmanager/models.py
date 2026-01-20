@@ -1,6 +1,7 @@
 from django.db import models
-import hashlib
+import crypt
 import secrets
+import string
 
 
 class FTPUser(models.Model):
@@ -11,11 +12,12 @@ class FTPUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def set_password(self, raw_password):
-        """Generate MD5 hash for ProFTPD compatibility"""
-        salt = secrets.token_hex(4)
-        hash_input = f"{salt}{raw_password}"
-        md5_hash = hashlib.md5(hash_input.encode()).hexdigest()
-        self.password_hash = f"$1${salt}${md5_hash}"
+        """Generate SHA-512 crypt hash for ProFTPD compatibility"""
+        # Generate random salt for SHA-512 crypt
+        salt_chars = string.ascii_letters + string.digits + './'
+        salt = ''.join(secrets.choice(salt_chars) for _ in range(16))
+        # Use SHA-512 crypt ($6$)
+        self.password_hash = crypt.crypt(raw_password, f'$6${salt}$')
 
     def __str__(self):
         return self.username
