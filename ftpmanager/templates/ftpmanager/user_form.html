@@ -42,7 +42,12 @@
 
                     <div class="mb-3">
                         <label for="id_systemuser" class="form-label">System User</label>
-                        {{ form.systemuser }}
+                        <div class="input-group">
+                            {{ form.systemuser }}
+                            <button type="button" class="btn btn-outline-secondary" id="btn-lookup-user" title="Browse system users">
+                                <i class="bi bi-person-vcard"></i> Browse
+                            </button>
+                        </div>
                         <div class="form-text">System username or UID for file ownership (looked up in /etc/passwd)</div>
                         {% if form.systemuser.errors %}
                             <div class="text-danger small">{{ form.systemuser.errors }}</div>
@@ -63,6 +68,40 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System User Browser Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalLabel">
+                    <i class="bi bi-person-vcard me-2"></i>Select System User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="user-filter" placeholder="Filter users...">
+                </div>
+                <div id="user-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2">Loading system users...</div>
+                </div>
+                <div id="user-error" class="alert alert-danger d-none"></div>
+                <div id="user-list" class="list-group d-none" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <small class="text-muted me-auto">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Filtered by regexp in <a href="{% url 'profile_settings' %}">Settings</a>
+                </small>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -106,6 +145,75 @@ document.addEventListener('DOMContentLoaded', function() {
             btnCopy.classList.remove('btn-success');
             btnCopy.classList.add('btn-outline-success');
         }, 2000);
+    });
+
+    // System User Lookup
+    const systemuserInput = document.getElementById('id_systemuser');
+    const btnLookupUser = document.getElementById('btn-lookup-user');
+    const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+    const userLoading = document.getElementById('user-loading');
+    const userError = document.getElementById('user-error');
+    const userList = document.getElementById('user-list');
+    const userFilter = document.getElementById('user-filter');
+
+    let systemUsers = [];
+
+    btnLookupUser.addEventListener('click', function() {
+        // Reset modal state
+        userLoading.classList.remove('d-none');
+        userError.classList.add('d-none');
+        userList.classList.add('d-none');
+        userFilter.value = '';
+        userModal.show();
+
+        // Fetch system users
+        fetch('{% url "list_systemusers" %}')
+            .then(response => response.json())
+            .then(data => {
+                userLoading.classList.add('d-none');
+
+                if (data.error) {
+                    userError.textContent = data.error;
+                    userError.classList.remove('d-none');
+                    return;
+                }
+
+                systemUsers = data.users;
+                renderUsers(systemUsers);
+                userList.classList.remove('d-none');
+            })
+            .catch(error => {
+                userLoading.classList.add('d-none');
+                userError.textContent = 'Failed to load users: ' + error;
+                userError.classList.remove('d-none');
+            });
+    });
+
+    function renderUsers(users) {
+        userList.innerHTML = '';
+        users.forEach(user => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.className = 'list-group-item list-group-item-action';
+            item.innerHTML = '<i class="bi bi-person me-2"></i>' + user;
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                systemuserInput.value = user;
+                userModal.hide();
+            });
+            userList.appendChild(item);
+        });
+
+        if (users.length === 0) {
+            userList.innerHTML = '<div class="list-group-item text-muted">No matching users found</div>';
+        }
+    }
+
+    // Filter users
+    userFilter.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const filtered = systemUsers.filter(user => user.toLowerCase().includes(filter));
+        renderUsers(filtered);
     });
 });
 </script>

@@ -10,6 +10,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     basedir = models.CharField(max_length=500, default='/main/', help_text='Base directory for folder lookup')
     exclude_dirs = models.CharField(max_length=500, default='/keys/,.ssh', help_text='Comma-separated list of directories to exclude')
+    systemuser_regexp = models.CharField(max_length=200, default=r'.*\..*', help_text='Regexp to filter system users (default: names with at least one dot)')
 
     def __str__(self):
         return f"Profile for {self.user.username}"

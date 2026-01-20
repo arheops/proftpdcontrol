@@ -1,4 +1,5 @@
 import os
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -252,4 +253,44 @@ def list_directories(request):
     return JsonResponse({
         'basedir': basedir.rstrip('/'),
         'directories': relative_dirs
+    })
+
+
+# System User Lookup API
+@login_required
+def list_systemusers(request):
+    """AJAX endpoint to list system users from /etc/passwd filtered by regexp"""
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    pattern = profile.systemuser_regexp
+    users = []
+
+    passwd_file = '/etc/passwd'
+    if not os.path.isfile(passwd_file):
+        return JsonResponse({'error': f'File not found: {passwd_file}', 'users': []})
+
+    try:
+        regex = re.compile(pattern)
+    except re.error as e:
+        return JsonResponse({'error': f'Invalid regexp: {e}', 'users': []})
+
+    try:
+        with open(passwd_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                parts = line.split(':')
+                if len(parts) >= 1:
+                    username = parts[0]
+                    if regex.match(username):
+                        users.append(username)
+    except PermissionError:
+        return JsonResponse({'error': 'Permission denied reading /etc/passwd', 'users': []})
+    except Exception as e:
+        return JsonResponse({'error': f'Error reading passwd: {e}', 'users': []})
+
+    return JsonResponse({
+        'pattern': pattern,
+        'users': sorted(users)
     })

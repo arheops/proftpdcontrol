@@ -31,6 +31,15 @@
                         <div class="form-text">Comma-separated list of directory patterns to exclude from browser (e.g., /keys/,.ssh,@eaDir)</div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="id_systemuser_regexp" class="form-label">System User Filter</label>
+                        {{ form.systemuser_regexp }}
+                        {% if form.systemuser_regexp.errors %}
+                            <div class="text-danger small">{{ form.systemuser_regexp.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Regexp to filter system users in lookup (read-only, default matches domain-style names with dots)</div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'dashboard' %}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-1"></i>Back

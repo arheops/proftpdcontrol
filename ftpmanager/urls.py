@@ -33,4 +33,5 @@ urlpatterns = [
 
     # API
     path('api/directories/', views.list_directories, name='list_directories'),
+    path('api/systemusers/', views.list_systemusers, name='list_systemusers'),
 ]

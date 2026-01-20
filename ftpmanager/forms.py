@@ -72,8 +72,9 @@ class UserProfileForm(forms.ModelForm):
     """Form for editing user profile settings"""
     class Meta:
         model = UserProfile
-        fields = ['basedir', 'exclude_dirs']
+        fields = ['basedir', 'exclude_dirs', 'systemuser_regexp']
         widgets = {
             'basedir': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '/main/'}),
             'exclude_dirs': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '/keys/,.ssh'}),
+            'systemuser_regexp': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
         }
