@@ -27,14 +27,10 @@ mkdir -p /opt/proftpdcontrol
 cd /opt/proftpdcontrol
 ```
 
-### 2. Copy application files
+### 2. Download application files
 
 ```bash
-# If cloning from git
-git clone <repository-url> .
-
-# OR copy files manually
-cp -r /path/to/proftpdcontrol/* /opt/proftpdcontrol/
+git clone https://github.com/arheops/proftpdcontrol.git .
 ```
 
 ### 3. Create Python virtual environment
