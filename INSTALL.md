@@ -289,3 +289,26 @@ systemctl restart proftpdcontrol
 systemctl restart proftpd
 systemctl restart nginx  # or apache2
 ```
+
+## Automatic Config Deployment (Cron)
+
+Set up automatic deployment of ProFTPD configuration changes:
+
+### 1. Copy and set permissions on deploy script
+
+```bash
+cp /opt/proftpdcontrol/contrib/proftp_restart.sh /usr/local/bin/
+chmod +x /usr/local/bin/proftp_restart.sh
+```
+
+### 2. Add to crontab
+
+```bash
+# Edit root crontab
+crontab -e
+
+# Add line to run every 5 minutes:
+*/5 * * * * /usr/local/bin/proftp_restart.sh >> /var/log/proftpdcontrol/cron.log 2>&1
+```
+
+The script only restarts ProFTPD if configuration files have changed.
