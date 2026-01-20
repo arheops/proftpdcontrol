@@ -18,6 +18,7 @@
                 <thead>
                     <tr>
                         <th>Username</th>
+                        <th>System User</th>
                         <th>Status</th>
                         <th>Folder Access</th>
                         <th>Created</th>
@@ -29,6 +30,9 @@
                     <tr>
                         <td>
                             <i class="bi bi-person me-2"></i>{{ user.username }}
+                        </td>
+                        <td>
+                            <code>{{ user.systemuser }}</code>
                         </td>
                         <td>
                             <span class="badge {% if user.is_active %}bg-success{% else %}bg-secondary{% endif %}">
