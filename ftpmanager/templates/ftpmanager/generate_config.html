@@ -43,24 +43,40 @@
     </div>
 </div>
 
+<div class="card border-success mb-4">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-lightning me-2"></i>Deploy Using Django Command (Recommended)
+    </div>
+    <div class="card-body">
+        <p>Deploy configuration files directly to ProFTPD:</p>
+        <pre class="bg-dark text-light p-3 rounded"><code>cd /opt/proftpdcontrol
+source venv/bin/activate
+
+# Preview changes
+python manage.py deploy_config --dry-run
+
+# Deploy and restart ProFTPD
+sudo python manage.py deploy_config --test --restart</code></pre>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
-        <i class="bi bi-terminal me-2"></i>Deployment Instructions
+        <i class="bi bi-terminal me-2"></i>Manual Deployment
     </div>
     <div class="card-body">
         <ol class="mb-0">
             <li class="mb-2">Download both configuration files using the buttons above</li>
-            <li class="mb-2">Copy <code>proftpd.conf</code> to <code>/etc/proftpd/proftpd.conf</code></li>
-            <li class="mb-2">Copy <code>ftpd.passwd</code> to <code>/etc/proftpd/ftpd.passwd</code></li>
+            <li class="mb-2">Copy files to server:
+                <pre class="bg-light p-2 mt-2 rounded"><code>scp proftpd.conf root@server:/etc/proftpd/conf.d/users.conf
+scp ftpd.passwd root@server:/etc/proftpd/ftpd.passwd</code></pre>
+            </li>
             <li class="mb-2">Set proper permissions:
                 <pre class="bg-light p-2 mt-2 rounded"><code>chmod 600 /etc/proftpd/ftpd.passwd
 chown root:root /etc/proftpd/ftpd.passwd</code></pre>
             </li>
-            <li class="mb-2">Restart ProFTPD:
-                <pre class="bg-light p-2 mt-2 rounded"><code>systemctl restart proftpd</code></pre>
-            </li>
-            <li>Verify configuration:
-                <pre class="bg-light p-2 mt-2 rounded"><code>proftpd -t</code></pre>
+            <li>Test and restart ProFTPD:
+                <pre class="bg-light p-2 mt-2 rounded"><code>proftpd -t && systemctl restart proftpd</code></pre>
             </li>
         </ol>
     </div>

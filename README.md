@@ -132,13 +132,36 @@ Format: `username:password_hash:uid:gid:gecos:homedir:shell`
 
 Contains all active FTP users with their hashed passwords.
 
-## Deployment to OpenMediaVault
+## Deployment
+
+### Using Django Command (Recommended)
+
+```bash
+cd /opt/proftpdcontrol
+source venv/bin/activate
+
+# Preview changes
+python manage.py deploy_config --dry-run
+
+# Deploy and restart ProFTPD
+sudo python manage.py deploy_config --test --restart
+```
+
+Options:
+- `--config-dir` - ProFTPD config directory (default: `/etc/proftpd`)
+- `--config-file` - Config file path (default: `conf.d/users.conf`)
+- `--passwd-file` - Password file path (default: `ftpd.passwd`)
+- `--test` - Test configuration after deploy
+- `--restart` - Restart ProFTPD after deploy
+- `--dry-run` - Preview without making changes
+
+### Manual Deployment
 
 1. Download both config files from the web interface
-2. Copy to your OMV server:
+2. Copy to your server:
    ```bash
-   scp proftpd.conf root@omv:/etc/proftpd/proftpd.conf
-   scp ftpd.passwd root@omv:/etc/proftpd/ftpd.passwd
+   scp proftpd.conf root@server:/etc/proftpd/conf.d/users.conf
+   scp ftpd.passwd root@server:/etc/proftpd/ftpd.passwd
    ```
 3. Set permissions:
    ```bash
