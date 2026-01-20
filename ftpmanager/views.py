@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from .models import FTPUser, Folder, FolderAccess
 from .forms import FTPUserForm, FolderForm, FolderAccessForm
 from .config_generator import generate_proftpd_config, generate_ftpusers_file
 
 
+@login_required
 def dashboard(request):
     """Main dashboard showing overview"""
     context = {
@@ -19,11 +21,13 @@ def dashboard(request):
 
 
 # FTP User Views
+@login_required
 def user_list(request):
     users = FTPUser.objects.prefetch_related('folder_access__folder').all()
     return render(request, 'ftpmanager/user_list.html', {'users': users})
 
 
+@login_required
 def user_create(request):
     if request.method == 'POST':
         form = FTPUserForm(request.POST)
@@ -40,6 +44,7 @@ def user_create(request):
     return render(request, 'ftpmanager/user_form.html', {'form': form, 'title': 'Create User'})
 
 
+@login_required
 def user_edit(request, pk):
     user = get_object_or_404(FTPUser, pk=pk)
     if request.method == 'POST':
@@ -53,6 +58,7 @@ def user_edit(request, pk):
     return render(request, 'ftpmanager/user_form.html', {'form': form, 'title': 'Edit User', 'user': user})
 
 
+@login_required
 def user_delete(request, pk):
     user = get_object_or_404(FTPUser, pk=pk)
     if request.method == 'POST':
@@ -63,6 +69,7 @@ def user_delete(request, pk):
     return render(request, 'ftpmanager/user_confirm_delete.html', {'user': user})
 
 
+@login_required
 def user_access(request, pk):
     """Manage folder access for a specific user"""
     user = get_object_or_404(FTPUser, pk=pk)
@@ -90,11 +97,13 @@ def user_access(request, pk):
 
 
 # Folder Views
+@login_required
 def folder_list(request):
     folders = Folder.objects.prefetch_related('user_access__user').all()
     return render(request, 'ftpmanager/folder_list.html', {'folders': folders})
 
 
+@login_required
 def folder_create(request):
     if request.method == 'POST':
         form = FolderForm(request.POST)
@@ -107,6 +116,7 @@ def folder_create(request):
     return render(request, 'ftpmanager/folder_form.html', {'form': form, 'title': 'Create Folder'})
 
 
+@login_required
 def folder_edit(request, pk):
     folder = get_object_or_404(Folder, pk=pk)
     if request.method == 'POST':
@@ -120,6 +130,7 @@ def folder_edit(request, pk):
     return render(request, 'ftpmanager/folder_form.html', {'form': form, 'title': 'Edit Folder', 'folder': folder})
 
 
+@login_required
 def folder_delete(request, pk):
     folder = get_object_or_404(Folder, pk=pk)
     if request.method == 'POST':
@@ -131,6 +142,7 @@ def folder_delete(request, pk):
 
 
 # Config Generation Views
+@login_required
 def generate_config(request):
     """Show config generation page with preview"""
     config = generate_proftpd_config()
@@ -141,6 +153,7 @@ def generate_config(request):
     })
 
 
+@login_required
 def download_config(request):
     """Download proftpd.conf file"""
     config = generate_proftpd_config()
@@ -149,6 +162,7 @@ def download_config(request):
     return response
 
 
+@login_required
 def download_ftpusers(request):
     """Download ftpd.passwd file for virtual users"""
     ftpusers = generate_ftpusers_file()

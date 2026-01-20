@@ -62,6 +62,13 @@
                             </a>
                         </li>
                     </ul>
+                    <hr class="text-white-50">
+                    <div class="text-white-50 small mb-2">
+                        <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                    </div>
+                    <a class="nav-link text-danger" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-left me-2"></i>Logout
+                    </a>
                 </div>
             </nav>
 
