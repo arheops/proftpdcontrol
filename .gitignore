@@ -1,6 +1,9 @@
 # Database
 db.sqlite3
 
+# Static files (collected)
+static/
+
 # Virtual environments
 venv/
 env/
