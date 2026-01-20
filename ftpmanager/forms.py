@@ -11,9 +11,10 @@ class FTPUserForm(forms.ModelForm):
 
     class Meta:
         model = FTPUser
-        fields = ['username', 'is_active']
+        fields = ['username', 'systemuser', 'is_active']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'systemuser': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'username or UID (e.g. www-data or 1001)'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

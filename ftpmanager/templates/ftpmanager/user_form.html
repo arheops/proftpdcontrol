@@ -32,6 +32,15 @@
                         {% endif %}
                     </div>
 
+                    <div class="mb-3">
+                        <label for="id_systemuser" class="form-label">System User</label>
+                        {{ form.systemuser }}
+                        <div class="form-text">System username or UID for file ownership (looked up in /etc/passwd)</div>
+                        {% if form.systemuser.errors %}
+                            <div class="text-danger small">{{ form.systemuser.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="mb-3 form-check">
                         {{ form.is_active }}
                         <label class="form-check-label" for="id_is_active">Active</label>

@@ -1,23 +1,18 @@
 from django.db import models
-import crypt
-import secrets
-import string
+from passlib.hash import sha512_crypt
 
 
 class FTPUser(models.Model):
     username = models.CharField(max_length=100, unique=True)
     password_hash = models.CharField(max_length=255, blank=True)
+    systemuser = models.CharField(max_length=100, default='1001', help_text='System username or UID for file ownership')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def set_password(self, raw_password):
         """Generate SHA-512 crypt hash for ProFTPD compatibility"""
-        # Generate random salt for SHA-512 crypt
-        salt_chars = string.ascii_letters + string.digits + './'
-        salt = ''.join(secrets.choice(salt_chars) for _ in range(16))
-        # Use SHA-512 crypt ($6$)
-        self.password_hash = crypt.crypt(raw_password, f'$6${salt}$')
+        self.password_hash = sha512_crypt.hash(raw_password)
 
     def __str__(self):
         return self.username

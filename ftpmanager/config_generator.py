@@ -81,6 +81,27 @@ RequireValidShell off
     return config
 
 
+def get_uid_gid(systemuser):
+    """
+    Look up UID/GID for a system user.
+    If systemuser is a number, use it directly.
+    If it's a username, look it up in /etc/passwd.
+    """
+    import pwd
+
+    # If it's already a number, use it
+    if systemuser.isdigit():
+        return systemuser, systemuser
+
+    # Try to look up the user in /etc/passwd
+    try:
+        pw = pwd.getpwnam(systemuser)
+        return str(pw.pw_uid), str(pw.pw_gid)
+    except KeyError:
+        # User not found, use default
+        return "1001", "1001"
+
+
 def generate_ftpusers_file():
     """
     Generate ftpd.passwd file for ProFTPD virtual users
@@ -95,12 +116,12 @@ def generate_ftpusers_file():
         "# Format: username:password:uid:gid:gecos:homedir:shell",
     ]
 
-    # Use a common UID/GID for virtual users (typically ftp user)
-    uid = "1000"
-    gid = "1000"
     shell = "/bin/false"
 
     for user in users:
+        # Get UID/GID from systemuser field
+        uid, gid = get_uid_gid(user.systemuser)
+
         # Get first accessible folder as home dir, or /tmp if none
         first_access = user.folder_access.first()
         home_dir = first_access.folder.path if first_access else "/tmp"
