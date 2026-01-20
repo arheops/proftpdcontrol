@@ -23,7 +23,15 @@
 
                     <div class="mb-3">
                         <label for="id_password" class="form-label">Password</label>
-                        {{ form.password }}
+                        <div class="input-group">
+                            <input type="text" name="password" class="form-control" id="id_password" autocomplete="new-password">
+                            <button type="button" class="btn btn-outline-secondary" id="btn-random" title="Generate random password">
+                                <i class="bi bi-shuffle"></i> Random
+                            </button>
+                            <button type="button" class="btn btn-outline-success d-none" id="btn-copy" title="Copy password">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
                         {% if user %}
                             <div class="form-text">Leave blank to keep current password</div>
                         {% endif %}
@@ -59,4 +67,46 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('id_password');
+    const btnRandom = document.getElementById('btn-random');
+    const btnCopy = document.getElementById('btn-copy');
+
+    function generatePassword(length) {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let password = '';
+        for (let i = 0; i < length; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    }
+
+    btnRandom.addEventListener('click', function() {
+        const password = generatePassword(10);
+        passwordInput.value = password;
+        btnCopy.classList.remove('d-none');
+    });
+
+    btnCopy.addEventListener('click', function() {
+        passwordInput.select();
+        document.execCommand('copy');
+
+        // Visual feedback
+        const icon = btnCopy.querySelector('i');
+        icon.classList.remove('bi-clipboard');
+        icon.classList.add('bi-clipboard-check');
+        btnCopy.classList.remove('btn-outline-success');
+        btnCopy.classList.add('btn-success');
+
+        setTimeout(function() {
+            icon.classList.remove('bi-clipboard-check');
+            icon.classList.add('bi-clipboard');
+            btnCopy.classList.remove('btn-success');
+            btnCopy.classList.add('btn-outline-success');
+        }, 2000);
+    });
+});
+</script>
 {% endblock %}
