@@ -26,7 +26,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--restart',
             action='store_true',
-            help='Restart ProFTPD service after deploying'
+            help='Restart ProFTPD service after deploying (only if files changed)'
         )
         parser.add_argument(
             '--test',
@@ -38,12 +38,43 @@ class Command(BaseCommand):
             action='store_true',
             help='Show what would be done without making changes'
         )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Force write even if content unchanged'
+        )
+
+    def read_file(self, path):
+        """Read file content, return None if file doesn't exist"""
+        try:
+            with open(path, 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return None
+        except PermissionError:
+            raise CommandError(f'Permission denied reading {path}. Run with sudo.')
+
+    def write_file(self, path, content, mode):
+        """Write content to file and set permissions"""
+        # Ensure directory exists
+        file_dir = os.path.dirname(path)
+        if not os.path.exists(file_dir):
+            self.stdout.write(f'Creating directory: {file_dir}')
+            os.makedirs(file_dir, mode=0o755)
+
+        try:
+            with open(path, 'w') as f:
+                f.write(content)
+            os.chmod(path, mode)
+        except PermissionError:
+            raise CommandError(f'Permission denied writing to {path}. Run with sudo.')
 
     def handle(self, *args, **options):
         config_dir = options['config_dir']
         config_path = os.path.join(config_dir, options['config_file'])
         passwd_path = os.path.join(config_dir, options['passwd_file'])
         dry_run = options['dry_run']
+        force = options['force']
 
         # Generate configs
         self.stdout.write('Generating configuration files...')
@@ -60,33 +91,35 @@ class Command(BaseCommand):
             self.stdout.write(passwd_content)
             return
 
-        # Ensure directories exist
-        config_file_dir = os.path.dirname(config_path)
-        if not os.path.exists(config_file_dir):
-            self.stdout.write(f'Creating directory: {config_file_dir}')
-            os.makedirs(config_file_dir, mode=0o755)
+        # Read existing files
+        existing_config = self.read_file(config_path)
+        existing_passwd = self.read_file(passwd_path)
 
-        # Write config file
-        self.stdout.write(f'Writing config to: {config_path}')
-        try:
-            with open(config_path, 'w') as f:
-                f.write(config_content)
-            os.chmod(config_path, 0o644)
-        except PermissionError:
-            raise CommandError(f'Permission denied writing to {config_path}. Run with sudo.')
+        # Track changes
+        files_changed = False
 
-        # Write passwd file
-        self.stdout.write(f'Writing passwd to: {passwd_path}')
-        try:
-            with open(passwd_path, 'w') as f:
-                f.write(passwd_content)
-            os.chmod(passwd_path, 0o600)
-        except PermissionError:
-            raise CommandError(f'Permission denied writing to {passwd_path}. Run with sudo.')
+        # Compare and write config file
+        if force or existing_config != config_content:
+            self.stdout.write(f'Writing config to: {config_path}')
+            self.write_file(config_path, config_content, 0o644)
+            files_changed = True
+        else:
+            self.stdout.write(f'Config unchanged: {config_path}')
 
-        self.stdout.write(self.style.SUCCESS('Configuration files deployed successfully.'))
+        # Compare and write passwd file
+        if force or existing_passwd != passwd_content:
+            self.stdout.write(f'Writing passwd to: {passwd_path}')
+            self.write_file(passwd_path, passwd_content, 0o600)
+            files_changed = True
+        else:
+            self.stdout.write(f'Passwd unchanged: {passwd_path}')
 
-        # Test configuration
+        if files_changed:
+            self.stdout.write(self.style.SUCCESS('Configuration files updated.'))
+        else:
+            self.stdout.write(self.style.SUCCESS('No changes detected.'))
+
+        # Test configuration (always if requested)
         if options['test']:
             self.stdout.write('Testing ProFTPD configuration...')
             result = subprocess.run(['proftpd', '-t'], capture_output=True, text=True)
@@ -96,11 +129,14 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'Configuration test failed:\n{result.stderr}'))
                 return
 
-        # Restart service
+        # Restart service only if files changed
         if options['restart']:
-            self.stdout.write('Restarting ProFTPD service...')
-            result = subprocess.run(['systemctl', 'restart', 'proftpd'], capture_output=True, text=True)
-            if result.returncode == 0:
-                self.stdout.write(self.style.SUCCESS('ProFTPD service restarted.'))
+            if files_changed:
+                self.stdout.write('Restarting ProFTPD service...')
+                result = subprocess.run(['systemctl', 'restart', 'proftpd'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    self.stdout.write(self.style.SUCCESS('ProFTPD service restarted.'))
+                else:
+                    self.stdout.write(self.style.ERROR(f'Failed to restart ProFTPD:\n{result.stderr}'))
             else:
-                self.stdout.write(self.style.ERROR(f'Failed to restart ProFTPD:\n{result.stderr}'))
+                self.stdout.write('Skipping restart: no files changed.')
