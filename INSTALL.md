@@ -56,6 +56,7 @@ pip install gunicorn
 
 ```bash
 # Set allowed hosts (replace with your hostname)
+export EMAIL_HERE="root@localhost" # change email to your admin email
 export HOST_NAME_HERE="`hostname`" # change if different hostname
 sed -i "s/ALLOWED_HOSTS = \[.*\]/ALLOWED_HOSTS = ['$HOST_NAME_HERE']/" proftpdcontrol/settings.py
 
@@ -131,9 +132,11 @@ server {
     }
 }
 EOF
+# change server name
+sed -e "s/ftp.example.com/$HOST_NAME_HERE/g" /etc/nginx/sites-available/proftpdcontrol
 
 # Edit server_name to match your domain
-nano /etc/nginx/sites-available/proftpdcontrol
+#nano /etc/nginx/sites-available/proftpdcontrol
 
 # Enable site and remove default
 ln -sf /etc/nginx/sites-available/proftpdcontrol /etc/nginx/sites-enabled/
@@ -148,7 +151,8 @@ systemctl reload nginx
 
 ```bash
 # Replace ftp.example.com with your domain
-certbot --nginx -d ftp.example.com
+apt-get install certbot python3-certbot-nginx
+certbot --nginx -d $HOST_NAME_HERE -m $EMAIL_HERE --agree-tos --no-eff-email
 
 # Follow the prompts:
 # - Enter email for renewal notices
@@ -163,7 +167,7 @@ certbot --nginx -d ftp.example.com
 cp contrib/nginx-proftpdcontrol.conf /etc/nginx/sites-available/proftpdcontrol
 
 # Edit server_name and certificate paths to match your domain
-sed -i 's/ftp.example.com/YOUR_DOMAIN/g' /etc/nginx/sites-available/proftpdcontrol
+sed -i "s/ftp.example.com/$HOST_NAME_HERE/g" /etc/nginx/sites-available/proftpdcontrol
 
 # Test and reload
 nginx -t
@@ -174,7 +178,9 @@ systemctl reload nginx
 
 ```bash
 # Test renewal (dry run)
-certbot renew --dry-run
+certbot renew --pre-hook "service nginx stop" --post-hook "service nginx start" --standalone
+sed -i 's|ExecStart=.*|ExecStart=/usr/bin/certbot -q renew --no-random-sleep-on-renew --pre-hook "service nginx stop" --post-hook "service nginx start" --standalone|' \
+  /lib/systemd/system/certbot.service
 
 # Certbot automatically installs a systemd timer for renewal
 systemctl status certbot.timer
